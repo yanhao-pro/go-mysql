@@ -1483,7 +1483,7 @@ func BenchmarkUseDecimal(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, d := range decimalData {
-			_, _, _ = e.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false)
+			_, _, _ = e.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false, false)
 		}
 	}
 }
@@ -1493,7 +1493,7 @@ func BenchmarkNotUseDecimal(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, d := range decimalData {
-			_, _, _ = e.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false)
+			_, _, _ = e.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false, false)
 		}
 	}
 }
@@ -1502,14 +1502,14 @@ func TestDecimal(t *testing.T) {
 	e := &RowsEvent{useDecimal: true}
 	e2 := &RowsEvent{useDecimal: false}
 	for _, d := range decimalData {
-		v, _, err := e.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false)
+		v, _, err := e.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false, false)
 		require.NoError(t, err)
 		// no trailing zero
 		dec, err := decimal.NewFromString(d.num)
 		require.NoError(t, err)
 		require.True(t, dec.Equal(v.(decimal.Decimal)))
 
-		v, _, err = e2.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false)
+		v, _, err = e2.decodeValue(d.dumpData, mysql.MYSQL_TYPE_NEWDECIMAL, d.meta, false, false)
 		require.NoError(t, err)
 		require.Equal(t, d.num, v.(string))
 	}
@@ -1535,7 +1535,7 @@ func BenchmarkInt(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, d := range intData {
-			_, _, _ = e.decodeValue(d, mysql.MYSQL_TYPE_LONG, 0, false)
+			_, _, _ = e.decodeValue(d, mysql.MYSQL_TYPE_LONG, 0, false, false)
 		}
 	}
 }

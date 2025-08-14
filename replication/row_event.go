@@ -1162,6 +1162,7 @@ func (e *RowsEvent) decodeImage(data []byte, bitmap []byte, rowImageType EnumRow
 
 	partialBitmapIndex := 0
 	nullBitmapIndex := 0
+	unsignedMap := e.Table.UnsignedMap()
 
 	for i := 0; i < int(e.ColumnCount); i++ {
 		/*
@@ -1186,7 +1187,7 @@ func (e *RowsEvent) decodeImage(data []byte, bitmap []byte, rowImageType EnumRow
 
 		var n int
 		var err error
-		row[i], n, err = e.decodeValue(data[pos:], e.Table.ColumnType[i], e.Table.ColumnMeta[i], isPartial)
+		row[i], n, err = e.decodeValue(data[pos:], e.Table.ColumnType[i], e.Table.ColumnMeta[i], isPartial, unsignedMap[i])
 
 		if err != nil {
 			return 0, err
@@ -1215,7 +1216,7 @@ func (e *RowsEvent) parseFracTime(t interface{}) interface{} {
 }
 
 // see mysql sql/log_event.cc log_event_print_value
-func (e *RowsEvent) decodeValue(data []byte, tp byte, meta uint16, isPartial bool) (v interface{}, n int, err error) {
+func (e *RowsEvent) decodeValue(data []byte, tp byte, meta uint16, isPartial bool, unsigned bool) (v interface{}, n int, err error) {
 	var length = 0
 
 	if tp == MYSQL_TYPE_STRING {
@@ -1240,7 +1241,11 @@ func (e *RowsEvent) decodeValue(data []byte, tp byte, meta uint16, isPartial boo
 		return nil, 0, nil
 	case MYSQL_TYPE_LONG:
 		n = 4
-		v = ParseBinaryInt32(data)
+		if unsigned {
+			v = ParseBinaryUint32(data)
+		} else {
+			v = ParseBinaryInt32(data)
+		}
 	case MYSQL_TYPE_TINY:
 		n = 1
 		v = ParseBinaryInt8(data)
